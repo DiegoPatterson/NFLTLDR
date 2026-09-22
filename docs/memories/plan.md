@@ -25,6 +25,7 @@ It does not have accounts, and fantasy does not connect to other people. That ca
 | Data | ESPN's site web API (`site.web.api.espn.com`) for scores, teams, standings, news, rosters, schedules, game summaries, and player search. Core API for season team stat splits. CDN scoreboard is the fallback if the site web API fails. | `site.api.espn.com` returns 403 from this network (Akamai). The web API answered. No API key. Sleeper was dropped for v1: ESPN player search returns a real stat line and avoids a 5MB player dump. A provider folder still wraps this so a paid feed can replace it. |
 | Stats we will not invent | Advanced numbers (EPA, CPOE, success rate) | Show them only if a real source returns them. v1 does not pretend. |
 | Storage | On device only | Primary team, custom fantasy rules, roster, and the punishment log. |
+| Phone install | Local release APK, debug-signed | `npm run apk` writes `dist/FootballTLDR.apk` for sideload. Needs JDK 21. Not a Play Store build. Expo Go still shows the Expo icon; this APK shows the football icon. |
 
 ESPN's endpoints are unofficial. They can change or fail. The app must cache the last good response and show it with a "last updated" time instead of going blank. Do not show betting lines, even when a payload includes them.
 

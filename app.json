@@ -11,6 +11,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.diegopatterson.footballtldr",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#071A12",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

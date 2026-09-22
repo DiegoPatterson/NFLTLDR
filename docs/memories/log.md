@@ -2,6 +2,12 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-21 — sideload APK
+
+- Release APK built locally with `npm run apk` (`scripts/build-apk.ps1`). Output copied to `dist/FootballTLDR.apk` (about 97 MB). Package `com.diegopatterson.footballtldr`, versionCode 1.
+- Signed with the debug keystore so it can be installed on a phone. That signature is not for the Play Store.
+- The build needs JDK 21 (`%USERPROFILE%\jdks\jdk-21*`), not the system JDK 25. Build from the real project path. A short junction breaks the JS bundle because Metro sees two roots.
+
 ## 2026-09-21 — NFL rule sheet, no new tab
 
 - One line at the top of League, "NFL rules / Most looked-up first." It is not a tab.
