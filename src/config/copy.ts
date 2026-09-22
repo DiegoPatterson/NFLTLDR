@@ -33,6 +33,11 @@ export const copy = {
   division: 'Division',
   divisionHint: 'Good to know: the race around your club.',
   aroundLeague: 'Around the league',
+  nflRules: 'NFL rules',
+  nflRulesHint: 'Most looked-up first',
+  nflRulesIntro:
+    'Short reminders, from the flags and questions that come up most to the ones that rarely do. Not the league’s official book. The referee still has the call.',
+  nflRulesEmpty: 'No rule matched that.',
   noNews: 'No headlines right now.',
   noLive: 'Nothing is live. Here is your club.',
   checking: 'Checking the slate…',

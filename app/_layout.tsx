@@ -66,6 +66,7 @@ function Gate() {
         <Stack.Screen name="team/[id]" />
         <Stack.Screen name="game/[id]" />
         <Stack.Screen name="player/[id]" />
+        <Stack.Screen name="rules" />
       </Stack>
       {!splashDone ? <SplashView onDone={finishSplash} /> : null}
     </View>

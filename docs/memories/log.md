@@ -2,6 +2,12 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-21 — NFL rule sheet, no new tab
+
+- One line at the top of League, "NFL rules / Most looked-up first." It is not a tab.
+- The list lives in `src/config/nflRules.ts`, common flags first, rarer ones and overtime or replay after. Each row shows the usual result. Tap it for a short explanation. Wording is a reminder, not the league's book.
+
+
 ## 2026-09-21 — startup mark has no grass
 
 - The startup was cropping `icon.png`, so the dark grass showed up as a rough cutout inside the team frame.
