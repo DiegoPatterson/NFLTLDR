@@ -2,6 +2,10 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — sideload 1.0.2
+
+- Release APK rebuilt. `dist/FootballTLDR.apk` is about 97.5 MB, versionName 1.0.2, versionCode 3, same signature as the copy on the phone. Includes the team roster, depth-chart order, and the one-line news ticker.
+
 ## 2026-09-22 — news ticker
 
 - A repeated headline no longer shares one list key, which was the "two children with the same key" warning.
