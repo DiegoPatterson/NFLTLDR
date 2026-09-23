@@ -9,6 +9,7 @@ import { cached } from '@/src/data/cache'
 import {
   describeGame,
   fetchNews,
+  fetchInjuryReport,
   fetchPlayerCard,
   fetchPlayerHits,
   fetchRosterInjuries,
@@ -254,12 +255,20 @@ async function buildPlayerIndex(): Promise<IndexedPlayer[]> {
           id: player.id,
           name: player.name,
           teamName: team.name,
+          position: player.position,
           active: player.active,
         })
       }
     })
   }
   return found
+}
+
+/** A one-word search stays on the name and position, so "Chiefs" does not dump that roster. A second word can be the team. */
+function scorePlayer(text: string, player: IndexedPlayer): number {
+  const asNamed = fuzzyScore(text, `${player.name} ${player.position ?? ''}`.trim())
+  if (!text.includes(' ')) return asNamed
+  return Math.max(asNamed, fuzzyScore(text, `${player.name} ${player.position ?? ''} ${player.teamName}`))
 }
 
 export async function searchPlayers(query: string): Promise<PlayerHit[]> {
@@ -270,7 +279,7 @@ export async function searchPlayers(query: string): Promise<PlayerHit[]> {
     const ranked = index.data
       .map((player) => ({
         player,
-        score: Math.max(fuzzyScore(text, player.name), fuzzyScore(text, `${player.name} ${player.teamName}`)),
+        score: scorePlayer(text, player),
       }))
       .filter((hit) => hit.score >= fuzzyCutoff)
       .sort((a, b) => b.score - a.score)
@@ -284,14 +293,47 @@ export async function searchPlayers(query: string): Promise<PlayerHit[]> {
 }
 
 export async function loadPlayer(hit: PlayerHit): Promise<PlayerCard> {
-  const result = await cached(`player:${hit.id}`, features.ttl.playerMs, () => fetchPlayerCard(hit.id, hit))
+  const result = await cached(`player:v2:${hit.id}`, features.ttl.playerMs, () => fetchPlayerCard(hit.id, hit))
   const catalog = await getCatalog().catch(() => null)
-  const teamId = result.data.teamId
-  const abbr =
-    catalog?.data.find((team) => team.id === teamId)?.abbr ||
-    catalog?.data.find((team) => hit.teamName.includes(team.city) || hit.teamName.includes(team.name))?.abbr ||
-    ''
-  return { ...result.data, teamAbbr: abbr || result.data.teamAbbr, headshot: result.data.headshot || hit.headshot }
+  const teams = catalog?.data ?? []
+  const byId = (id?: string) => (id ? teams.find((team) => team.id === id) : undefined)
+  const current = byId(result.data.teamId)
+  const fromHint = teams.find(
+    (team) => hit.teamName && (hit.teamName.includes(team.name) || (team.city && hit.teamName.includes(team.city))),
+  )
+  const clubs = (result.data.clubs ?? []).flatMap((club) => {
+    const team = byId(club.teamId)
+    const name = team?.name || club.name
+    const abbr = team?.abbr || club.abbr
+    if (!name && !abbr) return []
+    return [{ ...club, name: name || abbr, abbr }]
+  })
+  let draft = result.data.draft
+  const draftedBy = byId(result.data.draftTeamId)
+  if (draft && draftedBy && !draft.includes(draftedBy.name)) draft = `${draft}, ${draftedBy.name}`
+  let injury = result.data.injury
+  let injuryNote = result.data.injuryNote
+  try {
+    const report = await cached('injury-report', features.ttl.newsMs, fetchInjuryReport)
+    const listed = report.data[hit.id]
+    if (listed) {
+      injury = listed.line
+      injuryNote = listed.note || undefined
+    }
+  } catch {
+    /* The card still opens. The report is extra. */
+  }
+  const { teamId: _teamId, draftTeamId: _draftTeamId, ...card } = result.data
+  return {
+    ...card,
+    teamAbbr: current?.abbr || fromHint?.abbr || card.teamAbbr,
+    teamName: current?.name || fromHint?.name || card.teamName,
+    ...(draft ? { draft } : {}),
+    clubs,
+    ...(injury ? { injury } : {}),
+    ...(injuryNote ? { injuryNote } : {}),
+    headshot: card.headshot || hit.headshot,
+  }
 }
 
 export { describeGame }

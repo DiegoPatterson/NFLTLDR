@@ -139,17 +139,48 @@ export type PlayerHit = {
   id: string
   name: string
   teamName: string
+  position?: string
   headshot?: string
+}
+
+export type PlayerClub = {
+  teamId: string
+  name: string
+  abbr: string
+  from: number
+  to: number
+}
+
+export type PlayerNote = {
+  headline: string
+  detail: string
+  when?: string
 }
 
 export type PlayerCard = {
   id: string
   name: string
   teamAbbr: string
+  /** Full club name for the open card. Pins keep the abbreviation. */
+  teamName?: string
+  /** Abbreviation from the feed. */
   position: string
   /** On an NFL roster right now. Retired and inactive players stay viewable, but off the fantasy sheet. */
   active: boolean
+  /** Feed status word, such as Inactive. Omitted when it is just Active. */
+  status?: string
+  jersey?: string
   headshot?: string
+  college?: string
+  experience?: string
+  draft?: string
+  /** Clubs from the season stat feed, earliest first. Empty when that feed has no team column. */
+  clubs?: PlayerClub[]
+  latest?: PlayerNote
+  news?: PlayerNote[]
+  /** Injury-report line. Absent when he is not on the report. */
+  injury?: string
+  injuryNote?: string
   stats: Record<string, string>
   numbers: Record<string, number>
 }

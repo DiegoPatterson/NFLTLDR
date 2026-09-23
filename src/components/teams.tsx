@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
 import { copy } from '@/src/config/copy'
@@ -7,17 +7,24 @@ import { fuzzyCutoff, fuzzyScore } from '@/src/logic/fuzzy'
 import { font, theme } from '@/src/config/theme'
 import type { CatalogTeam } from '@/src/data/types'
 import { Logo, useAccent, useTeamSkin } from '@/src/components/shell'
+import { mix } from '@/src/logic/color'
 
 export function TeamBrowser({
   teams,
   selectedId,
   yourId,
   onPress,
+  onQueryChange,
+  belowSearch,
+  placeholder,
 }: {
   teams: CatalogTeam[]
   selectedId?: string | null
   yourId?: string | null
   onPress: (id: string) => void
+  onQueryChange?: (query: string) => void
+  belowSearch?: ReactNode
+  placeholder?: string
 }) {
   const [query, setQuery] = useState('')
   const { accent, accentInk } = useAccent()
@@ -48,13 +55,17 @@ export function TeamBrowser({
     <View style={{ gap: 14 }}>
       <TextInput
         value={query}
-        onChangeText={setQuery}
-        placeholder={copy.searchTeams}
+        onChangeText={(value) => {
+          setQuery(value)
+          onQueryChange?.(value)
+        }}
+        placeholder={placeholder ?? copy.searchTeams}
         placeholderTextColor={theme.faint}
         style={[styles.input, { backgroundColor: skin.card, borderColor: skin.line }]}
         autoCorrect={false}
         autoCapitalize="none"
       />
+      {belowSearch}
       {groups.map((group) =>
         group.teams.length ? (
           <View key={group.key} style={{ gap: 6 }}>
@@ -67,14 +78,29 @@ export function TeamBrowser({
                   key={team.id}
                   onPress={() => onPress(team.id)}
                   accessibilityRole="button"
-                  style={[styles.row, { backgroundColor: skin.card, borderColor: skin.line }, selected && { borderColor: accent }]}>
+                  accessibilityState={{ selected }}
+                  style={({ pressed }) => [
+                    styles.row,
+                    { backgroundColor: skin.card, borderColor: skin.line },
+                    pressed && { opacity: 0.7 },
+                    selected && {
+                      borderColor: accent,
+                      borderWidth: 2,
+                      backgroundColor: mix(skin.card, accent, 0.28),
+                    },
+                  ]}>
+                  {selected ? <View style={[styles.pickedBar, { backgroundColor: accent }]} /> : null}
                   <Logo abbr={team.abbr} size={36} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{team.name}</Text>
                     <Text style={styles.sub}>{team.abbr}</Text>
                   </View>
                   {team.record ? <Text style={styles.record}>{team.record}</Text> : null}
-                  {yours ? (
+                  {selected ? (
+                    <View style={[styles.tag, { backgroundColor: accent }]}>
+                      <Text style={[styles.tagText, { color: accentInk }]}>{copy.picked}</Text>
+                    </View>
+                  ) : yours ? (
                     <View style={[styles.tag, { backgroundColor: accent }]}>
                       <Text style={[styles.tagText, { color: accentInk }]}>{copy.yourTeam}</Text>
                     </View>
@@ -123,6 +149,7 @@ const styles = StyleSheet.create({
   name: { color: theme.chalk, fontFamily: font.bodyMed, fontSize: 16 },
   sub: { color: theme.faint, fontFamily: font.body, fontSize: 12 },
   record: { color: theme.chalk, fontFamily: font.display, fontSize: 16 },
+  pickedBar: { width: 6, alignSelf: 'stretch', borderRadius: 3 },
   tag: { borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
   tagText: { fontFamily: font.display, fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase' },
 })

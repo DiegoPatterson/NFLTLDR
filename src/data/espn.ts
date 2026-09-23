@@ -8,6 +8,17 @@ import {
   type StatSpec,
 } from '@/src/config/statCatalog'
 import { paint } from '@/src/logic/color'
+import {
+  clubSpans,
+  clubsFromSpans,
+  collegeLookup,
+  draftBits,
+  experienceLabel,
+  injuriesByPlayer,
+  playerNotes,
+  wireNote,
+  type InjuryLine,
+} from '@/src/logic/playerFacts'
 import { scoreTldr } from '@/src/logic/tldr'
 import { arr, isRecord, parseStatNumber, str } from '@/src/data/json'
 import type {
@@ -576,19 +587,28 @@ export async function fetchPlayerHits(query: string): Promise<PlayerHit[]> {
   return hits
 }
 
-export async function fetchPlayerCard(id: string, hint?: PlayerHit): Promise<PlayerCard & { teamId?: string }> {
-  const [athlete, overview] = await Promise.all([
+export async function fetchInjuryReport(): Promise<Record<string, InjuryLine>> {
+  const json = await getJson(site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/injuries`))
+  return injuriesByPlayer(json)
+}
+
+export async function fetchPlayerCard(id: string, hint?: PlayerHit): Promise<PlayerCardDraft> {
+  const [athlete, overview, seasonStats] = await Promise.all([
     getJson(`${endpoints.core}/v2/sports/${endpoints.sport}/leagues/${endpoints.league}/athletes/${id}?lang=en`).catch(
       () => null,
     ),
     getJson(site(`/apis/common/v3/sports/${endpoints.sport}/${endpoints.league}/athletes/${id}/overview`)).catch(
       () => null,
     ),
+    getJson(site(`/apis/common/v3/sports/${endpoints.sport}/${endpoints.league}/athletes/${id}/stats`)).catch(
+      () => null,
+    ),
   ])
   const body = isRecord(athlete) ? athlete : {}
   const position = isRecord(body.position) ? str(body.position.abbreviation) : ''
-  const status = isRecord(body.status) ? str(body.status.type || body.status.name) : ''
-  const active = body.active === true || /^active$/i.test(status)
+  const statusName = isRecord(body.status) ? str(body.status.name) : ''
+  const statusType = isRecord(body.status) ? str(body.status.type || body.status.name) : ''
+  const active = body.active === true || /^active$/i.test(statusType)
   const teamRef = isRecord(body.team) ? str(body.team.$ref) : ''
   const teamMatch = teamRef.match(/teams\/(\d+)/)
   const headshot = isRecord(body.headshot) ? str(body.headshot.href) : ''
@@ -608,17 +628,42 @@ export async function fetchPlayerCard(id: string, hint?: PlayerHit): Promise<Pla
     const parsed = parseStatNumber(value)
     if (parsed != null) numbers[name] = parsed
   })
+  const full = str(body.displayName, hint?.name || 'Player')
+  const first = str(body.firstName) || full.split(' ')[0] || ''
+  const last = str(body.lastName) || full.split(' ').slice(-1)[0] || ''
+  const latest = isRecord(overview) ? wireNote(overview.rotowire) : undefined
+  const news = isRecord(overview)
+    ? playerNotes(overview.news, { first, last, full }, latest?.headline || '')
+    : []
+  const college = collegeLookup(body.college)
+  let collegeName = college.name
+  if (!collegeName && college.id) {
+    const school = await getJson(`${endpoints.core}/v2/colleges/${college.id}?lang=en`).catch(() => null)
+    collegeName = isRecord(school) ? str(school.name) : ''
+  }
+  const drafted = draftBits(body.draft)
+  const jersey = str(body.jersey)
+  const experience = experienceLabel(body.experience)
   return {
     id,
-    name: str(body.displayName, hint?.name || 'Player'),
+    name: full,
     teamAbbr: '',
     position,
     active,
+    ...(statusName && !/^active$/i.test(statusName) ? { status: statusName } : {}),
+    ...(jersey ? { jersey } : {}),
     headshot: hint?.headshot || headshot || undefined,
+    ...(collegeName ? { college: collegeName } : {}),
+    ...(experience ? { experience } : {}),
+    ...(drafted.text ? { draft: drafted.text } : {}),
+    clubs: clubsFromSpans(clubSpans(seasonStats)),
+    ...(latest ? { latest } : {}),
+    ...(news.length ? { news } : {}),
     stats: display,
     numbers,
     ...(teamMatch ? { teamId: teamMatch[1] } : {}),
-  } as PlayerCard & { teamId?: string }
+    ...(drafted.teamId ? { draftTeamId: drafted.teamId } : {}),
+  }
 }
 
-export type PlayerCardDraft = PlayerCard & { teamId?: string }
+export type PlayerCardDraft = PlayerCard & { teamId?: string; draftTeamId?: string }

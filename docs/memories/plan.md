@@ -31,13 +31,14 @@ ESPN's endpoints are unofficial. They can change or fail. The app must cache the
 
 ## Screens
 
-Bottom tabs:
+Bottom tabs, icons only (no words). A fixed short bar clipped the old labels once a phone's home indicator took its share of the height.
 
 1. **Home** — the front door. What it shows depends on the game state (see below).
 2. **League** — every other team, then a team page when you tap one.
-3. **Fantasy** — local builder, rules, custom rule sheet, punishment log.
+3. **Playbook** — formations, runs, route concepts, coverages, and the “if they keep doing this” answers. Replaced the Watch tab.
+4. **Rules** — the plain-language NFL reminders, most looked-up first. This replaced the fantasy tab.
 
-A gear in the header opens **Settings** (change primary team, data credits, export fantasy data). Settings is not a fourth tab.
+A gear in the header opens **Settings** (change primary team, data credits). Settings is not a tab.
 
 First launch, before the tabs: a **load screen**, then **pick your team** if none is saved. You can change the team later in Settings.
 
@@ -73,17 +74,21 @@ Which numbers are "main" vs "more" is a list in `src/config/statCatalog.ts`, not
 
 ### League
 
-Conferences and divisions, plus search. Tap a team for the same digest. The page makes it obvious this is not your primary team, with a way to set it as primary.
+Conferences and divisions, plus search. The same box also searches players, but player hits stay hidden until there is a search. Pin a player and he stays under the search bar so the team list can still be scrolled. Tap a team for the same digest. The page makes it obvious this is not your primary team, with a way to set it as primary.
 
-### Fantasy (local, for fun)
+The open player card shows his name and the full club name, with that club’s logo beside the name. The position stays an abbreviation. While the page is open the chrome uses his club’s colors, from the same field and accent pair as the rest of the app. Backing out restores the followed club. Under the name, the clubs he actually played for come from the season stat feed, with the years. An injury-report line shows only when he is on it. The latest wire note and a couple of headlines that name him fill the rest. A pinned row is the logo plus the abbreviations, not the news or the recolor.
 
-- **Rules.** Standard, half-PPR, and PPR writeups you can read. Wording lives in config so you can edit it.
-- **Custom rule sheet.** Scoring values, roster slots, bench, and any house notes. Saved on the phone.
-- **Punishment log.** Who, what they owe, which week, done or not. Not synced to anyone.
-- **Roster builder.** Search players, add them, see a short stat line under your chosen rules. A light start/sit glance compares recent form for two players at the same position. It is a hint, not advice.
-- **Export.** Share or save the rule sheet and punishment log as a file, because a reinstall would otherwise wipe house rules.
+### Playbook
 
-No leagues with friends, no drafts against other phones, no account login. Player search uses ESPN. Stat lines on a roster pick are that player's regular-season line, not a projection we calculated. The start/sit glance only compares numbers both players actually have.
+`src/config/playbook.ts` is the list. Grouped: formations, runs, quick game, concepts, play action, screens, coverage, fronts, and a last section for what to call when a team keeps doing the same thing. A row shows the name and what it looks like. Tap it for a published Wikimedia Commons diagram when one exists (`src/config/playImages.ts`), then how it works, the tell, when to call it, and the answer. Do not draw a guessed board for a play that has no published diagram. Not a club’s secret sheet.
+
+### Rules
+
+One tab, not a line buried on League. Short reminders in `src/config/nflRules.ts`, common flags first. Tap a row to open the explanation. Wording is a reminder, not the league's book.
+
+### Fantasy
+
+Removed from the app on 2026-09-21. It was not useful. Do not put the roster builder, custom sheet, or punishment log back on a tab unless asked. The old save shape can still be on the phone; nothing on screen reads it.
 
 ### News bar
 
@@ -101,10 +106,8 @@ These were not in the original list. They are in v1 because the app feels broken
 2. **Plain-English layer.** Every main section gets one TLDR sentence, and tapping a label like "RTG" or "YPC" explains it. The glossary is data in the stat catalog.
 3. **Next-opponent injuries**, not only your own team's list, when a game is coming up.
 4. **Schedule strip and division standing** on the team digest. A record with no context is not a digest.
-5. **Start/sit glance** inside fantasy, labeled as a toy.
-6. **Pull to refresh, cache, and last-updated.** The unofficial feed will fail sometimes.
-7. **Export** of custom rules and the punishment log.
-8. **Settings** to change the primary team and to credit ESPN and Sleeper.
+5. **Pull to refresh, cache, and last-updated.** The unofficial feed will fail sometimes.
+6. **Settings** to change the primary team and to credit ESPN.
 
 ## Explicitly later (do not build these now)
 

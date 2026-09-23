@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import { useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import {
   Image,
   Platform,
@@ -57,15 +57,15 @@ const plainSkin = (): TeamSkin => ({
   faint: theme.faint,
 })
 
-/** The whole chrome. On, the app is dyed with the followed club. Off, turf and gold. */
-export function useTeamSkin(): TeamSkin {
-  const { profile } = useApp()
-  const team = nflTeams.find((item) => item.id === profile.primaryTeamId)
-  if (!team || profile.useTeamColors === false) return plainSkin()
+const night = '#07080C'
+
+/** One club's chrome. Unknown abbreviations stay turf and gold. */
+export function skinForAbbr(abbr: string | null | undefined): TeamSkin {
+  const team = abbr ? nflTeams.find((item) => item.abbr === abbr) : undefined
+  if (!team) return plainSkin()
   const brand = { ...teamBrand[team.abbr], ...teamColorOverrides[team.abbr] }
   const field = brand.field || team.color
   const accent = brand.accent || team.alt
-  const night = '#07080C'
   return {
     themed: true,
     abbr: team.abbr,
@@ -81,6 +81,23 @@ export function useTeamSkin(): TeamSkin {
     muted: 'rgba(244,241,232,0.78)',
     faint: 'rgba(244,241,232,0.55)',
   }
+}
+
+const SkinOverride = createContext<string | null>(null)
+
+/** Dye this subtree with one club. Leaving the subtree restores the followed club. */
+export function TeamSkinOverride({ abbr, children }: { abbr?: string | null; children: ReactNode }) {
+  return <SkinOverride.Provider value={abbr || null}>{children}</SkinOverride.Provider>
+}
+
+/** The whole chrome. On, the app is dyed with the followed club. Off, turf and gold. A focused override wins for that screen only. */
+export function useTeamSkin(): TeamSkin {
+  const override = useContext(SkinOverride)
+  const { profile } = useApp()
+  if (override) return skinForAbbr(override)
+  const team = nflTeams.find((item) => item.id === profile.primaryTeamId)
+  if (!team || profile.useTeamColors === false) return plainSkin()
+  return skinForAbbr(team.abbr)
 }
 
 export function useAccent() {

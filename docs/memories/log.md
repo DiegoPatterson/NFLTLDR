@@ -2,6 +2,41 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — sideload update
+
+- Release APK rebuilt with `npm run apk`. Output is `dist/FootballTLDR.apk` (about 97.5 MB). Package `com.diegopatterson.footballtldr`, versionName 1.0.1, versionCode 2, same debug signature as the copy already on the phone, so it can install over that one.
+- Includes the player card, playbook, rules tab, and the raised rules icon.
+
+## 2026-09-22 — player page name and club colors
+
+- The open card shows his name and the full club name, logo beside the club. The position stays the short form. A pinned row is still the logo and the abbreviations.
+- While that page is on screen, the background, header, and buttons use his club’s colors. Leaving it restores the followed club.
+
+## 2026-09-22 — player cards
+
+- The position and club stay abbreviations. The club logo sits beside them on the player page and on a pinned row, so KC is recognizable without spelling the name.
+- Other clubs come from the season stat feed, with the years, so a last team is not the whole career. Injury report, the latest wire note, and headlines that name him show only when that feed has them. Nothing is filled in by hand.
+
+## 2026-09-21 — more matched diagrams
+
+- Power, a double-slant RPO, a sail (flood), a bubble screen, and a line stunt now use published Commons diagrams of those exact plays. Cover 1, cover 2 man, the sneak, a hot route, and motion stay as words. Anything still without a picture had no diagram I could match without guessing.
+
+## 2026-09-21 — published play diagrams
+
+- The drawn boards are gone. A play shows a Wikimedia Commons diagram when that library has one: the green formation set, or the route diagrams from the same library. If neither has the play, the row stays text only.
+
+## 2026-09-21 — league pins and a playbook
+
+- League search still lists teams. Players show up only after you type. A one-word search matches the name or position, so typing a club does not dump that roster. A second word can be the team.
+- Pin puts that player under the search bar. Unpin removes him. The same list is the Pin button on a player page. Teams stay a scroll, so the old Watch tab is gone.
+- Watch is now Playbook. Formations through coverage, plus a section for what to call when a team keeps doing the same thing. Tap a row to open it. The list is `src/config/playbook.ts`.
+
+## 2026-09-21 — icons, rules tab, picked team
+
+- The bottom bar used a fixed 58px height. On a phone the home indicator ate that space and the words clipped. The bar is now icons only: home, league, an eye for Watch, a book for Rules. Height includes the phone's bottom inset.
+- Fantasy is gone from the app. That tab is the NFL rules list. League no longer links to it. Settings no longer exports a fantasy sheet, and a player page no longer offers "add to the sheet."
+- Picking a team fills that row with the club color, a side bar, and a Picked tag before you tap confirm. The row also dims while your finger is down.
+
 ## 2026-09-21 — sideload APK
 
 - Release APK built locally with `npm run apk` (`scripts/build-apk.ps1`). Output copied to `dist/FootballTLDR.apk` (about 97 MB). Package `com.diegopatterson.footballtldr`, versionCode 1.

@@ -3,7 +3,7 @@ import { Pressable, Text, TextInput } from 'react-native'
 
 import { Card, Muted, Screen, useTeamSkin } from '@/src/components/shell'
 import { copy } from '@/src/config/copy'
-import { nflRules } from '../src/config/nflRules'
+import { nflRules } from '../../src/config/nflRules'
 import { font, theme } from '@/src/config/theme'
 import { fuzzyCutoff, fuzzyScore } from '@/src/logic/fuzzy'
 
@@ -21,7 +21,7 @@ export default function RulesScreen() {
   }, [needle])
 
   return (
-    <Screen back safeBottom title={copy.nflRules}>
+    <Screen gear title={copy.nflRules}>
       <Muted>{copy.nflRulesIntro}</Muted>
       <TextInput
         value={query}
@@ -44,8 +44,13 @@ export default function RulesScreen() {
       {shown.map((rule) => {
         const open = openId === rule.id
         return (
-          <Pressable key={rule.id} onPress={() => setOpenId(open ? null : rule.id)} accessibilityRole="button">
-            <Card>
+          <Pressable
+            key={rule.id}
+            onPress={() => setOpenId(open ? null : rule.id)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: open }}
+            style={({ pressed }) => [{ opacity: pressed ? 0.72 : 1 }]}>
+            <Card style={open ? { borderColor: skin.accent, borderWidth: 2 } : undefined}>
               <Text style={{ color: theme.chalk, fontFamily: font.display, fontSize: 18, letterSpacing: 0.4 }}>
                 {rule.title}
               </Text>

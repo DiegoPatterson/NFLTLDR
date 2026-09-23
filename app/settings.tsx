@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, Share, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { ActionButton, Card, Muted, Screen, useAccent } from '@/src/components/shell'
 import { brand } from '@/src/config/brand'
@@ -55,17 +55,6 @@ export default function SettingsScreen() {
         />
         {note ? <Muted>{note}</Muted> : null}
       </Card>
-      <ActionButton
-        label={copy.exportSheet}
-        onPress={() => {
-          const message = JSON.stringify(
-            { rules: profile.rules, punishments: profile.punishments, roster: profile.roster },
-            null,
-            2,
-          )
-          Share.share({ message, title: `${brand.name} sheet` }).catch(() => undefined)
-        }}
-      />
     </Screen>
   )
 }
