@@ -72,6 +72,8 @@ Collapsed sections, each with the few numbers people look up first. Tap to expan
 
 Which numbers are "main" vs "more" is a list in `src/config/statCatalog.ts`, not buried in the component.
 
+The team page uses that club’s colors while it is open, the same way a player page does, and backing out restores the followed club. Players is a closed section. Open it for the roster, grouped by position. Inside a position, the depth chart order is used: the player the club lists first, then the next, and anyone not on that chart last. Tap a name for the same player card as search. Pin and unpin use the same list as League.
+
 ### League
 
 Conferences and divisions, plus search. The same box also searches players, but player hits stay hidden until there is a search. Pin a player and he stays under the search bar so the team list can still be scrolled. Tap a team for the same digest. The page makes it obvious this is not your primary team, with a way to set it as primary.

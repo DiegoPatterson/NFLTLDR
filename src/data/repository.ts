@@ -13,6 +13,7 @@ import {
   fetchPlayerCard,
   fetchPlayerHits,
   fetchRosterInjuries,
+  fetchDepthRanks,
   fetchRosterPlayers,
   fetchTeamNotes,
   fetchSchedule,
@@ -290,6 +291,19 @@ export async function searchPlayers(query: string): Promise<PlayerHit[]> {
   }
   const exact = await cached(`search:${text.toLowerCase()}`, features.ttl.searchMs, () => fetchPlayerHits(text))
   return exact.data
+}
+
+export async function loadRoster(teamId: string, force = false) {
+  return cached(`roster:v2:${teamId}`, features.ttl.teamMs, async () => {
+    const [players, ranks] = await Promise.all([
+      fetchRosterPlayers(teamId),
+      fetchDepthRanks(teamId).catch(() => ({}) as Record<string, number>),
+    ])
+    return players.map((player, index) => ({
+      ...player,
+      usage: ranks[player.id] ?? 9000 + index,
+    }))
+  }, force)
 }
 
 export async function loadPlayer(hit: PlayerHit): Promise<PlayerCard> {

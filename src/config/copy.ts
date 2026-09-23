@@ -136,6 +136,7 @@ export const copy = {
   searchLeague: 'Teams or players',
   pinnedPlayers: 'Pinned',
   players: 'Players',
+  noRoster: 'No one listed on this roster.',
   pin: 'Pin',
   unpin: 'Unpin',
   playbook: 'Playbook',

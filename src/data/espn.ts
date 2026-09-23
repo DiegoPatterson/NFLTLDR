@@ -236,7 +236,8 @@ const bettingPattern = new RegExp(newsRules.bettingPattern, 'i')
 const voicePattern = new RegExp(newsRules.voicePattern, 'i')
 
 function readArticles(json: unknown): Article[] {
-  return arr(isRecord(json) ? json.articles : []).flatMap((article) => {
+  const seen = new Set<string>()
+  return arr(isRecord(json) ? json.articles : []).flatMap((article, index) => {
     if (!isRecord(article)) return []
     const headline = str(article.headline)
     if (!headline) return []
@@ -247,9 +248,12 @@ function readArticles(json: unknown): Article[] {
       .join(' ')
     const blob = `${headline} ${description} ${categories}`
     if (bettingPattern.test(blob)) return []
+    let id = str(article.id, headline)
+    if (seen.has(id)) id = `${id}-${index}`
+    seen.add(id)
     return [
       {
-        id: str(article.id, headline),
+        id,
         headline,
         description,
         big: bigPattern.test(headline),
@@ -318,6 +322,11 @@ export type RosterIndexPlayer = {
   name: string
   position: string
   active: boolean
+  /**
+   * Lower means the depth chart lists him sooner. Starters come before backups.
+   * Absent on the search index, which does not load the depth chart.
+   */
+  usage?: number
 }
 
 export function playersFromRoster(json: unknown): RosterIndexPlayer[] {
@@ -345,6 +354,41 @@ export function playersFromRoster(json: unknown): RosterIndexPlayer[] {
 export async function fetchRosterPlayers(id: string): Promise<RosterIndexPlayer[]> {
   const json = await getJson(site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/teams/${id}/roster`))
   return playersFromRoster(json)
+}
+
+/** Depth-chart order. The first name at a spot is the one the club lists to play there. */
+export function usageFromDepth(json: unknown): Record<string, number> {
+  const root = isRecord(json) ? json : {}
+  const ranks: Record<string, number> = {}
+  for (const chart of arr(root.depthchart)) {
+    if (!isRecord(chart)) continue
+    const special = /special/i.test(str(chart.name))
+    const base = special ? 5000 : 0
+    const positions = isRecord(chart.positions) ? chart.positions : {}
+    let slot = 0
+    for (const key of Object.keys(positions)) {
+      const entry = positions[key]
+      if (isRecord(entry)) {
+        arr(entry.athletes).forEach((athlete, depth) => {
+          if (!isRecord(athlete)) return
+          const id = str(athlete.id)
+          if (!id) return
+          const score = base + depth * 100 + slot
+          const prev = ranks[id]
+          if (prev == null || score < prev) ranks[id] = score
+        })
+      }
+      slot += 1
+    }
+  }
+  return ranks
+}
+
+export async function fetchDepthRanks(teamId: string): Promise<Record<string, number>> {
+  const json = await getJson(
+    site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/teams/${teamId}/depthcharts`),
+  )
+  return usageFromDepth(json)
 }
 
 export async function fetchRosterInjuries(id: string, teamAbbr?: string): Promise<Injury[]> {

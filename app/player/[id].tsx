@@ -75,8 +75,8 @@ export default function PlayerScreen() {
           {player.news?.length ? (
             <View style={block}>
               <Kicker>{copy.playerNews}</Kicker>
-              {player.news.map((note) => (
-                <View key={note.headline} style={block}>
+              {player.news.map((note, index) => (
+                <View key={`${note.headline}-${index}`} style={block}>
                   <Text style={line}>{note.headline}</Text>
                   {note.detail ? <Muted>{note.detail}</Muted> : null}
                 </View>

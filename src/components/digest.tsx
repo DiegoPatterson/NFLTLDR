@@ -106,10 +106,13 @@ function Sideline({ notes }: { notes: Digest['notes'] }) {
     <Card>
       <Text style={[styles.section, { color: skin.accent }]}>{copy.fromBuilding}</Text>
       <Muted>{copy.fromBuildingHint}</Muted>
-      {notes.map((note) => {
+      {notes.map((note, index) => {
         const shown = open === note.headline
         return (
-          <Pressable key={note.headline} onPress={() => setOpen(shown ? null : note.headline)} accessibilityRole="button">
+          <Pressable
+            key={`${note.headline}-${index}`}
+            onPress={() => setOpen(shown ? null : note.headline)}
+            accessibilityRole="button">
             <Text style={[styles.leader, { color: skin.muted }]}>{note.headline}</Text>
             {shown && note.detail ? <Muted>{note.detail}</Muted> : null}
           </Pressable>

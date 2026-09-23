@@ -2,6 +2,20 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — news ticker
+
+- A repeated headline no longer shares one list key, which was the "two children with the same key" warning.
+- Breaking news stays on one line, scrolls, and loops. The loop restarts only when the headlines change.
+
+## 2026-09-22 — roster order
+
+- Inside each position, the team page lists whoever the depth chart puts first, then the next name at that spot. Someone not on the chart stays at the bottom. It is no longer alphabetical.
+
+## 2026-09-22 — team roster
+
+- Each team page has a Players section, closed until you open it. The list is that club’s roster, grouped by position. Tap a name for the player card. Pin and unpin use the same list as League.
+- While the team page is open, the chrome uses that club’s colors. Leaving it restores the followed club.
+
 ## 2026-09-22 — sideload update
 
 - Release APK rebuilt with `npm run apk`. Output is `dist/FootballTLDR.apk` (about 97.5 MB). Package `com.diegopatterson.footballtldr`, versionName 1.0.1, versionCode 2, same debug signature as the copy already on the phone, so it can install over that one.
