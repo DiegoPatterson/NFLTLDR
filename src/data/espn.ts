@@ -138,7 +138,7 @@ export function mapEvent(raw: unknown): SlateGame | null {
     home.score = ''
     away.score = ''
   }
-  const broadcast = broadcastNames(competition)
+  const outlets = broadcastOutlets(competition)
   const venue = isRecord(competition.venue) ? str(competition.venue.fullName) : ''
   const situation = situationOf(competition.situation)
   const detail = str(type.shortDetail || type.detail)
@@ -155,7 +155,8 @@ export function mapEvent(raw: unknown): SlateGame | null {
     ...(clock ? { clock } : {}),
     ...(running === undefined ? {} : { clockRunning: running }),
     week: isRecord(raw.week) ? str(raw.week.text || raw.week.number) || undefined : undefined,
-    broadcast: broadcast || undefined,
+    broadcast: outlets.primary,
+    ...(outlets.outlets.length ? { outlets: outlets.outlets } : {}),
     venue: venue || undefined,
     home,
     away,
@@ -163,27 +164,48 @@ export function mapEvent(raw: unknown): SlateGame | null {
   }
 }
 
-function addOutlet(found: string[], name: string) {
-  const clean = name.trim()
-  if (!clean || found.some((item) => item.toLowerCase() === clean.toLowerCase())) return
-  found.push(clean)
+type Outlet = { name: string; label: string; kind: string; market: string }
+
+function fieldText(value: unknown, keys: string[]): string {
+  if (typeof value === 'string') return value.trim()
+  if (!isRecord(value)) return ''
+  for (const key of keys) {
+    const text = str(value[key])
+    if (text) return text
+  }
+  return ''
 }
 
-/** TV and streaming outlets. The scoreboard uses names, the schedule uses media.shortName, and a stream is often only on geoBroadcasts. */
-function broadcastNames(competition: Record<string, unknown>): string {
-  const found: string[] = []
+function outletLabel(name: string, kind: string, market: string): string {
+  const extra = market || (/^tv$/i.test(kind) ? '' : kind)
+  return extra ? `${name} · ${extra}` : name
+}
+
+/** TV and streaming outlets. National television is the main listing. Local call letters are not in this feed. */
+function broadcastOutlets(competition: Record<string, unknown>): { primary?: string; outlets: { name: string; label: string }[] } {
+  const found: Outlet[] = []
   for (const item of [...arr(competition.broadcasts), ...arr(competition.geoBroadcasts)]) {
     if (!isRecord(item)) continue
+    const kind = fieldText(item.type, ['shortName', 'name'])
+    const market = fieldText(item.market, ['type', 'name'])
     const media = isRecord(item.media) ? str(item.media.shortName || item.media.name) : ''
-    if (Array.isArray(item.names)) {
-      for (const name of item.names) addOutlet(found, str(name))
-    } else {
-      addOutlet(found, str(item.names))
+    const names = Array.isArray(item.names) ? item.names.map((name) => str(name)) : [str(item.names)]
+    for (const name of [...names, media]) {
+      const clean = name.trim()
+      if (!clean || found.some((outlet) => outlet.name.toLowerCase() === clean.toLowerCase())) continue
+      found.push({ name: clean, kind, market, label: outletLabel(clean, kind, market) })
     }
-    addOutlet(found, media)
   }
-  if (competition.onWatchESPN === true) addOutlet(found, 'Watch ESPN')
-  return found.join(' · ')
+  if (competition.onWatchESPN === true && !found.some((outlet) => outlet.name.toLowerCase() === 'watch espn')) {
+    found.push({ name: 'Watch ESPN', kind: 'Streaming', market: '', label: 'Watch ESPN' })
+  }
+  const nationalTv = found.find((outlet) => /^tv$/i.test(outlet.kind) && /national/i.test(outlet.market))
+  const anyTv = found.find((outlet) => /^tv$/i.test(outlet.kind))
+  const primary = nationalTv ?? anyTv ?? found[0]
+  return {
+    primary: primary?.label,
+    outlets: found.map((outlet) => ({ name: outlet.name, label: outlet.label })),
+  }
 }
 
 function gamesFromScoreboard(json: unknown): SlateGame[] {

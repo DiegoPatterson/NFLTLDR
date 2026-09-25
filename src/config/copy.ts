@@ -15,6 +15,7 @@ export const copy = {
   upNext: 'Up next',
   thisWeek: 'This week',
   kickoff: 'Kickoff',
+  otherStations: 'Other stations',
   fromBuilding: 'From the building',
   fromBuildingHint: 'A coach line or one team note, when there is one. Not every article.',
   teamColors: 'Team colors',

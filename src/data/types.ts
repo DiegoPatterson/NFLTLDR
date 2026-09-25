@@ -27,7 +27,10 @@ export type SlateGame = {
   possessionId?: string
   downLine?: string
   redZone?: boolean
+  /** The main outlet, such as "CBS · National". */
   broadcast?: string
+  /** Every outlet the feed names. The first national TV listing is the main one. */
+  outlets?: { name: string; label: string }[]
   venue?: string
   home: Side
   away: Side

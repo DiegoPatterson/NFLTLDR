@@ -124,7 +124,8 @@ export async function getGameDetail(id: string, force = false, persist = true): 
       downLine: fromSlate.downLine ?? mapped.game.downLine,
       redZone: fromSlate.redZone || mapped.game.redZone,
       shortName: fromSlate.shortName || mapped.game.shortName,
-      broadcast: mapped.game.broadcast || fromSlate.broadcast,
+      broadcast: fromSlate.broadcast || mapped.game.broadcast,
+      outlets: fromSlate.outlets?.length ? fromSlate.outlets : mapped.game.outlets,
       home: {
         ...mapped.game.home,
         score: fromSlate.state === 'pre' ? '' : fromSlate.home.score || mapped.game.home.score,

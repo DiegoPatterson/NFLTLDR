@@ -8,6 +8,7 @@ import { font, theme } from '@/src/config/theme'
 import { describeGame } from '@/src/data/espn'
 import type { CompareRow, GameDetail, Injury, SlateGame } from '@/src/data/types'
 import { Card, Logo, Muted, useAccent, useTeamSkin } from '@/src/components/shell'
+import { OtherOutlets } from '@/src/components/outlets'
 import { useLiveClock } from '@/src/components/useLiveClock'
 
 export function LiveBoard({ detail }: { detail: GameDetail }) {
@@ -53,6 +54,7 @@ export function LiveBoard({ detail }: { detail: GameDetail }) {
           ))}
         </View>
       ) : null}
+      <OtherOutlets game={game} />
     </Card>
   )
 }
@@ -118,8 +120,8 @@ function Compare({ row }: { row: CompareRow }) {
 export function MatchupCard({ game, injuries }: { game: SlateGame; injuries?: Injury[] }) {
   const listed = (injuries ?? []).filter((person) => person.name).slice(0, 4)
   return (
-    <Pressable onPress={() => router.push(`/game/${game.id}`)} accessibilityRole="button">
-      <Card>
+    <Card>
+      <Pressable onPress={() => router.push(`/game/${game.id}`)} accessibilityRole="button">
         <View style={styles.meta}>
           <StatusPill state={game.state} />
           <Text style={styles.detail}>{game.state === 'pre' ? copy.kickoff : game.detail}</Text>
@@ -138,8 +140,9 @@ export function MatchupCard({ game, injuries }: { game: SlateGame; injuries?: In
             {person.position ? ` · ${person.position}` : ''} · {person.status}
           </Text>
         ))}
-      </Card>
-    </Pressable>
+      </Pressable>
+      <OtherOutlets game={game} />
+    </Card>
   )
 }
 

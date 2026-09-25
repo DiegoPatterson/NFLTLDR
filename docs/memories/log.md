@@ -2,6 +2,11 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — main outlet, others tucked away
+
+- The main listing stays on the kickoff line. Any other outlet the feed names sits in Other stations, under the rest of the card. Live stations are not links.
+- The feed still does not name a local station or a city. A CBS game says CBS · National. It cannot say whether KCBS in Los Angeles is the one carrying it.
+
 ## 2026-09-22 — every outlet
 
 - A game lists every network the feed names, TV and streaming, not just the first. Watch ESPN is added when the feed says the game is on that app. A FOX-only listing stays FOX, because that feed did not name a second outlet.

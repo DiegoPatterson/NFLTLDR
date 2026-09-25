@@ -7,6 +7,7 @@ import { features } from '@/src/config/features'
 import { glossary } from '@/src/config/statCatalog'
 import { font, theme } from '@/src/config/theme'
 import type { Digest, Injury, StatChip } from '@/src/data/types'
+import { OtherOutlets } from '@/src/components/outlets'
 import { Card, Logo, Muted, useTeamSkin } from '@/src/components/shell'
 
 export function TeamDigest({
@@ -222,11 +223,14 @@ function GameLink({ label, game }: { label: string; game: Digest['next'] }) {
       ? [game.detail, game.broadcast].filter(Boolean).join('  ·  ')
       : `${game.away.abbr} ${game.away.score || '0'} · ${game.home.abbr} ${game.home.score || '0'}`
   return (
-    <Pressable onPress={() => router.push(`/game/${game.id}`)} style={[styles.linkCard, { backgroundColor: skin.card, borderColor: skin.line }]}>
-      <Text style={[styles.linkLabel, { color: skin.accent }]}>{label}</Text>
-      <Text style={styles.linkMain}>{game.shortName}</Text>
-      <Text style={[styles.linkSub, { color: skin.muted }]}>{score}</Text>
-    </Pressable>
+    <View style={[styles.linkCard, { backgroundColor: skin.card, borderColor: skin.line }]}>
+      <Pressable onPress={() => router.push(`/game/${game.id}`)} accessibilityRole="button">
+        <Text style={[styles.linkLabel, { color: skin.accent }]}>{label}</Text>
+        <Text style={styles.linkMain}>{game.shortName}</Text>
+        <Text style={[styles.linkSub, { color: skin.muted }]}>{score}</Text>
+      </Pressable>
+      <OtherOutlets game={game} />
+    </View>
   )
 }
 
