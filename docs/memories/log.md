@@ -2,6 +2,10 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — sideload 1.0.3
+
+- Release APK rebuilt. `dist/FootballTLDR.apk` is versionName 1.0.3, versionCode 4, same signature as the copy on the phone. Includes the schedule, live clock, bundled play diagrams, scores, and the playoff picture.
+
 ## 2026-09-22 — main outlet, others tucked away
 
 - The main listing stays on the kickoff line. Any other outlet the feed names sits in Other stations, under the rest of the card. Live stations are not links.
