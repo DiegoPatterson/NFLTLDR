@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 
 import { LiveBoard } from '@/src/components/board'
+import { useScreenAwake } from '@/src/components/useScreenAwake'
 import { Muted, Screen, updatedLabel } from '@/src/components/shell'
 import { copy } from '@/src/config/copy'
 import { features } from '@/src/config/features'
@@ -14,11 +15,12 @@ export default function GameScreen() {
   const [failed, setFailed] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
+  const awake = useScreenAwake()
   const load = useCallback(
-    async (force = false) => {
+    async (force = false, persist = true) => {
       if (!id) return
       try {
-        setDetail(await getGameDetail(id, force))
+        setDetail(await getGameDetail(id, force, persist))
         setFailed(false)
       } catch {
         setFailed(true)
@@ -32,12 +34,12 @@ export default function GameScreen() {
   }, [load])
 
   useEffect(() => {
-    if (detail?.game.state !== 'in') return
+    if (!awake || detail?.game.state !== 'in') return
     const timer = setInterval(() => {
-      load(true).catch(() => undefined)
+      load(true, false).catch(() => undefined)
     }, features.liveRefreshMs)
     return () => clearInterval(timer)
-  }, [detail?.game.state, load])
+  }, [awake, detail?.game.state, load])
 
   return (
     <Screen

@@ -10,6 +10,7 @@ export async function cached<T>(
   ttlMs: number,
   load: () => Promise<T>,
   force = false,
+  persist = true,
 ): Promise<{ data: T; at: number; stale: boolean }> {
   const now = Date.now()
   const hit = memory.get(key) as Entry<T> | undefined
@@ -20,7 +21,8 @@ export async function cached<T>(
     const data = await load()
     const entry = { at: now, data }
     memory.set(key, entry)
-    AsyncStorage.setItem(PREFIX + key, JSON.stringify(entry)).catch(() => undefined)
+    // A live poll stays in memory. Disk is for a later open, not every score check.
+    if (persist) AsyncStorage.setItem(PREFIX + key, JSON.stringify(entry)).catch(() => undefined)
     return { data, at: now, stale: false }
   } catch (error) {
     if (hit) return { data: hit.data, at: hit.at, stale: true }

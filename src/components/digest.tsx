@@ -49,6 +49,7 @@ export function TeamDigest({
         <Muted>{copy.noneScheduled}</Muted>
       )}
       {digest.last && digest.last.id !== skipGameId ? <GameLink label="Last" game={digest.last} /> : null}
+      <ScheduleList games={digest.upcoming} byeWeek={digest.byeWeek} abbr={digest.abbr} />
       <ScoreList games={digest.results} />
       <Sideline notes={digest.notes} />
 
@@ -133,6 +134,61 @@ function Fact({ label, value }: { label: string; value: string }) {
   )
 }
 
+function ScheduleList({ games, byeWeek, abbr }: { games: Digest['upcoming']; byeWeek?: number; abbr: string }) {
+  const skin = useTeamSkin()
+  const [open, setOpen] = useState(false)
+  const rows = scheduleRows(games, byeWeek, abbr)
+  if (!rows.length) return null
+  return (
+    <Card>
+      <Pressable onPress={() => setOpen((value) => !value)} accessibilityRole="button">
+        <Text style={[styles.section, { color: skin.accent }]}>
+          {copy.schedule}  {open ? '–' : '+'}
+        </Text>
+      </Pressable>
+      {open
+        ? rows.map((row) =>
+            row.gameId ? (
+              <Pressable key={row.key} onPress={() => router.push(`/game/${row.gameId}`)} accessibilityRole="button">
+                <Text style={styles.leader}>{row.text}</Text>
+              </Pressable>
+            ) : (
+              <Text key={row.key} style={styles.leader}>
+                {row.text}
+              </Text>
+            ),
+          )
+        : null}
+    </Card>
+  )
+}
+
+function scheduleRows(games: Digest['upcoming'], byeWeek: number | undefined, abbr: string) {
+  const rows = games.map((game) => ({
+    sort: weekNumber(game.week),
+    key: game.id,
+    gameId: game.id,
+    text: [game.week, where(game, abbr), game.state === 'post' ? '' : game.detail, game.broadcast]
+      .filter(Boolean)
+      .join('  ·  '),
+  }))
+  if (byeWeek) {
+    rows.push({ sort: byeWeek, key: `bye-${byeWeek}`, gameId: '', text: `Week ${byeWeek}  ·  ${copy.bye}` })
+  }
+  return rows.sort((a, b) => a.sort - b.sort || a.text.localeCompare(b.text))
+}
+
+function where(game: NonNullable<Digest['next']>, abbr: string): string {
+  const home = game.home.abbr === abbr
+  const opponent = home ? game.away.abbr : game.home.abbr
+  return home ? `vs ${opponent}` : `at ${opponent}`
+}
+
+function weekNumber(week?: string): number {
+  const match = (week || '').match(/(\d+)/)
+  return match ? Number(match[1]) : 99
+}
+
 function ScoreList({ games }: { games: Digest['results'] }) {
   const skin = useTeamSkin()
   const [open, setOpen] = useState(true)
@@ -162,7 +218,9 @@ function GameLink({ label, game }: { label: string; game: Digest['next'] }) {
   const skin = useTeamSkin()
   if (!game) return null
   const score =
-    game.state === 'pre' ? game.detail : `${game.away.abbr} ${game.away.score || '0'} · ${game.home.abbr} ${game.home.score || '0'}`
+    game.state === 'pre'
+      ? [game.detail, game.broadcast].filter(Boolean).join('  ·  ')
+      : `${game.away.abbr} ${game.away.score || '0'} · ${game.home.abbr} ${game.home.score || '0'}`
   return (
     <Pressable onPress={() => router.push(`/game/${game.id}`)} style={[styles.linkCard, { backgroundColor: skin.card, borderColor: skin.line }]}>
       <Text style={[styles.linkLabel, { color: skin.accent }]}>{label}</Text>

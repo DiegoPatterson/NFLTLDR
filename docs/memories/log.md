@@ -2,6 +2,20 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — every outlet
+
+- A game lists every network the feed names, TV and streaming, not just the first. Watch ESPN is added when the feed says the game is on that app. A FOX-only listing stays FOX, because that feed did not name a second outlet.
+
+## 2026-09-22 — live clock
+
+- While a game is on and the screen is open, the scoreboard is asked every 15 seconds and kept in memory. It is not written to the phone on each check. The poll stops if you leave the screen or lock the phone.
+- The clock on that game counts down between checks. The next scoreboard reply replaces it if the two disagree. A stopped clock in the feed is left alone.
+
+## 2026-09-22 — team schedule and network
+
+- Each team page has a Schedule section for the games still to play, including the bye when it is still ahead. A row shows the week, opponent, kickoff, and the network from the feed.
+- The next-game line shows that same network. The old reader only looked at one broadcast field, so the channel was missing even when the feed had CBS, FOX, ESPN, or Prime Video.
+
 ## 2026-09-22 — scores, playoff picture, bundled diagrams
 
 - Playbook diagrams that could be saved now ship inside the app. Wikimedia was refusing the phone, which is why some pictures failed in the install.

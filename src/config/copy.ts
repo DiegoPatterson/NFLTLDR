@@ -127,6 +127,8 @@ export const copy = {
   loadingField: 'Painting the field',
   noneScheduled: 'No upcoming game on the schedule we have.',
   scores: 'Scores',
+  schedule: 'Schedule',
+  bye: 'Bye',
   noScores: 'No finished games on the schedule yet.',
   playoffPicture: 'Playoff picture',
   playoffNote:

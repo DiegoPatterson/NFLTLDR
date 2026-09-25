@@ -2,6 +2,8 @@ import { router } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 
+import { useScreenAwake } from '@/src/components/useScreenAwake'
+
 import { GameStrip, LiveBoard, MatchupCard } from '@/src/components/board'
 import { TeamDigest, YourClubCard } from '@/src/components/digest'
 import { Muted, Screen, updatedLabel, useTeamSkin } from '@/src/components/shell'
@@ -87,15 +89,16 @@ export default function HomeScreen() {
   const watching = shouldWatch(slate ?? [])
 
   const liveNow = watchKey.split('|').some((part) => part.endsWith(':in'))
+  const awake = useScreenAwake()
 
   useEffect(() => {
-    if (!watching) return
+    if (!watching || !awake) return
     const timer = setInterval(() => {
       if (!liveNow) {
         load(true).catch(() => undefined)
         return
       }
-      getSlate(true)
+      getSlate(true, false)
         .then((result) => {
           setSlate(result.data)
           setUpdatedAt(result.at)
@@ -105,7 +108,7 @@ export default function HomeScreen() {
         .catch(() => undefined)
     }, liveNow ? features.liveRefreshMs : features.soonRefreshMs)
     return () => clearInterval(timer)
-  }, [liveNow, load, watching])
+  }, [awake, liveNow, load, watching])
 
   useEffect(() => {
     if (!heroId) {
@@ -113,7 +116,7 @@ export default function HomeScreen() {
       return
     }
     let cancel = false
-    getGameDetail(heroId, liveNow)
+    getGameDetail(heroId, liveNow, !liveNow)
       .then((next) => {
         if (!cancel) setDetail(next)
       })
@@ -152,7 +155,13 @@ export default function HomeScreen() {
         {!slate && !failed ? <Muted>{copy.checking}</Muted> : null}
         {decision?.mode === 'live' && board ? <LiveBoard detail={board} /> : null}
         {decision?.mode === 'live' ? (
-          <GameStrip title={copy.alsoOn} hint={others.length ? copy.tapToSwap : undefined} games={others} onPress={pin} />
+          <GameStrip
+            title={copy.alsoOn}
+            hint={others.length ? copy.tapToSwap : undefined}
+            games={others}
+            stamp={updatedAt}
+            onPress={pin}
+          />
         ) : null}
         {decision?.mode !== 'live' && nextGame ? <MatchupCard game={nextGame} injuries={matchupInjuries} /> : null}
         {finals.length ? (

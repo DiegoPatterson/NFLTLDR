@@ -6,10 +6,11 @@ export const features = {
   showUpcomingStrip: true,
   showDivisionSnapshot: true,
   /**
-   * How often the scoreboard is asked again while a game is in progress.
-   * Five seconds. The pre-kickoff poll stays slower.
+   * How often the scoreboard is asked again while a game is in progress
+   * and the screen is open. Fifteen seconds. The on-screen clock ticks
+   * between checks and snaps back to this reply.
    */
-  liveRefreshMs: 5000,
+  liveRefreshMs: 15_000,
   /** Slower poll in the hours before kickoff, so the card flips to live without a manual refresh. */
   soonRefreshMs: 60000,
   /** Start polling this long before kickoff. */

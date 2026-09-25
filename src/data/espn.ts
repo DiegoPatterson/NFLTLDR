@@ -8,6 +8,7 @@ import {
   type StatSpec,
 } from '@/src/config/statCatalog'
 import { paint } from '@/src/logic/color'
+import { clockFromDetail } from '@/src/logic/liveClock'
 import {
   clubSpans,
   clubsFromSpans,
@@ -137,17 +138,22 @@ export function mapEvent(raw: unknown): SlateGame | null {
     home.score = ''
     away.score = ''
   }
-  const broadcast = arr(competition.broadcasts)
-    .map((item) => (isRecord(item) ? arr(item.names).map((name) => str(name)).find(Boolean) : ''))
-    .find(Boolean)
+  const broadcast = broadcastNames(competition)
   const venue = isRecord(competition.venue) ? str(competition.venue.fullName) : ''
   const situation = situationOf(competition.situation)
+  const detail = str(type.shortDetail || type.detail)
+  const clock = clockFromDetail(detail, str(status.displayClock))
+  const running = isRecord(competition.situation) && typeof competition.situation.isClockRunning === 'boolean'
+    ? competition.situation.isClockRunning
+    : undefined
   return {
     id: str(raw.id || competition.id),
     shortName: str(raw.shortName, `${away.abbr} @ ${home.abbr}`),
     date: str(raw.date || competition.date),
     state,
-    detail: str(type.shortDetail || type.detail),
+    detail,
+    ...(clock ? { clock } : {}),
+    ...(running === undefined ? {} : { clockRunning: running }),
     week: isRecord(raw.week) ? str(raw.week.text || raw.week.number) || undefined : undefined,
     broadcast: broadcast || undefined,
     venue: venue || undefined,
@@ -155,6 +161,29 @@ export function mapEvent(raw: unknown): SlateGame | null {
     away,
     ...situation,
   }
+}
+
+function addOutlet(found: string[], name: string) {
+  const clean = name.trim()
+  if (!clean || found.some((item) => item.toLowerCase() === clean.toLowerCase())) return
+  found.push(clean)
+}
+
+/** TV and streaming outlets. The scoreboard uses names, the schedule uses media.shortName, and a stream is often only on geoBroadcasts. */
+function broadcastNames(competition: Record<string, unknown>): string {
+  const found: string[] = []
+  for (const item of [...arr(competition.broadcasts), ...arr(competition.geoBroadcasts)]) {
+    if (!isRecord(item)) continue
+    const media = isRecord(item.media) ? str(item.media.shortName || item.media.name) : ''
+    if (Array.isArray(item.names)) {
+      for (const name of item.names) addOutlet(found, str(name))
+    } else {
+      addOutlet(found, str(item.names))
+    }
+    addOutlet(found, media)
+  }
+  if (competition.onWatchESPN === true) addOutlet(found, 'Watch ESPN')
+  return found.join(' · ')
 }
 
 function gamesFromScoreboard(json: unknown): SlateGame[] {
@@ -314,9 +343,14 @@ export async function fetchTeamRaw(id: string): Promise<unknown> {
   return getJson(site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/teams/${id}`))
 }
 
-export async function fetchSchedule(id: string): Promise<SlateGame[]> {
+export async function fetchSchedule(id: string): Promise<{ games: SlateGame[]; byeWeek?: number }> {
   const json = await getJson(site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/teams/${id}/schedule`))
-  return arr(isRecord(json) ? json.events : []).map(mapEvent).filter((game): game is SlateGame => game != null)
+  const root = isRecord(json) ? json : {}
+  const bye = Number(root.byeWeek)
+  return {
+    games: arr(root.events).map(mapEvent).filter((game): game is SlateGame => game != null),
+    byeWeek: Number.isFinite(bye) && bye > 0 ? bye : undefined,
+  }
 }
 
 export function injuriesFromRoster(json: unknown, teamAbbr?: string): Injury[] {

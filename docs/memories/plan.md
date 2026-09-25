@@ -50,7 +50,7 @@ Confirmed 2026-09-21. This replaces the earlier "your team always stays in front
 - **When your team's game comes on, it takes the front once.** The game you were watching moves into the strip. This happens one time per your-team game (at kickoff, or the first time the app sees that game already live). It does not yank the screen back on every refresh.
 - **Tap the strip to swap.** The tapped game becomes the front. If your team's game is live and no longer in front, it sits on the strip. Tap it to put yours back. A manual swap sticks until a new game of yours starts.
 - **Nothing is live.** Home still leads with the scoreboard: the next game (kickoff, logos, and any listed inactives) and the week's final scores under it. Your team's digest sits below that. An upcoming game does not pretend to be live. Tapping a final or the next game opens it.
-- **Near kickoff.** If a game starts within three hours, Home keeps asking for a new scoreboard so it flips to live without a pull-to-refresh. The interval is `soonRefreshMs` in `src/config/features.ts`. Live games use the faster `liveRefreshMs`.
+- **Near kickoff.** If a game starts within three hours, Home keeps asking for a new scoreboard so it flips to live without a pull-to-refresh. The interval is `soonRefreshMs` in `src/config/features.ts`. While a game is on, `liveRefreshMs` is 15 seconds, and only while that screen is open and the phone is awake. That reply stays in memory. The clock counts down between checks and snaps to the feed on the next reply.
 - **Offseason or an empty week.** Do not fake a live game. Show last result, record, and the calendar.
 
 Remember `focusedGameId`, `userPinnedGameId`, and the your-team game ids already auto-promoted. The rule lives in `src/logic/focus.ts`. Do not reimplement it inside a screen.
@@ -66,6 +66,7 @@ Collapsed sections, each with the few numbers people look up first. Tap to expan
 - Record and division standing
 - Next game, or last game if the season is between weeks
 - Scores: every finished game this season, newest first. Tap one for that game.
+- Schedule: the games still to play, plus the bye if it is still ahead. Each game shows the kickoff time and the network (CBS, FOX, Prime Video, and the rest). Closed until opened.
 - Leaders: passing, rushing, receiving
 - Offense: points, yards, turnovers, third down, red zone
 - Defense: points allowed, sacks, takeaways

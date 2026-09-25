@@ -19,6 +19,10 @@ export type SlateGame = {
   state: GameState
   /** Week label from the feed, such as "Week 1". */
   week?: string
+  /** Game clock from the last check, like "8:42". The screen counts down from it. */
+  clock?: string
+  /** False when the feed says the clock is stopped. Missing means keep counting. */
+  clockRunning?: boolean
   detail: string
   possessionId?: string
   downLine?: string
@@ -104,6 +108,10 @@ export type Digest = {
   last?: SlateGame
   /** Finished games this season, newest first. */
   results: SlateGame[]
+  /** Games still to play, earliest first. */
+  upcoming: SlateGame[]
+  /** Bye week number, only while it is still ahead. */
+  byeWeek?: number
   sections: DigestSection[]
   leaders: Leader[]
   injuries: Injury[]

@@ -40,8 +40,8 @@ import type {
   StatChip,
 } from '@/src/data/types'
 
-export async function getSlate(force = false) {
-  return cached('slate', features.ttl.scoreboardMs, fetchSlate, force)
+export async function getSlate(force = false, persist = true) {
+  return cached('slate', features.ttl.scoreboardMs, fetchSlate, force, persist)
 }
 
 export async function getNews(force = false): Promise<{ data: Article[]; at: number; stale: boolean }> {
@@ -106,10 +106,10 @@ export async function getLeague(force = false): Promise<{ data: CatalogTeam[]; a
   }
 }
 
-export async function getGameDetail(id: string, force = false): Promise<GameDetail> {
+export async function getGameDetail(id: string, force = false, persist = true): Promise<GameDetail> {
   const [summary, slate] = await Promise.all([
-    cached(`game:${id}`, features.ttl.gameMs, () => fetchSummary(id), force),
-    getSlate(force).catch(() => null),
+    cached(`game:${id}`, features.ttl.gameMs, () => fetchSummary(id), force, persist),
+    getSlate(force, persist).catch(() => null),
   ])
   const mapped = mapSummary(summary.data, id)
   const fromSlate = slate?.data.find((game) => game.id === id)
@@ -118,6 +118,8 @@ export async function getGameDetail(id: string, force = false): Promise<GameDeta
       ...mapped.game,
       state: fromSlate.state,
       detail: fromSlate.detail || mapped.game.detail,
+      clock: fromSlate.clock ?? mapped.game.clock,
+      clockRunning: fromSlate.clockRunning ?? mapped.game.clockRunning,
       possessionId: fromSlate.possessionId ?? mapped.game.possessionId,
       downLine: fromSlate.downLine ?? mapped.game.downLine,
       redZone: fromSlate.redZone || mapped.game.redZone,
@@ -138,6 +140,11 @@ export async function getGameDetail(id: string, force = false): Promise<GameDeta
     }
   }
   return { ...mapped, updatedAt: summary.at, stale: summary.stale }
+}
+
+function weekNumber(week?: string): number {
+  const match = (week || '').match(/(\d+)/)
+  return match ? Number(match[1]) : 0
 }
 
 function chips(specs: StatSpec[], bag: Record<string, string>): StatChip[] {
@@ -164,8 +171,8 @@ function sectionsFrom(bag: Record<string, string>): DigestSection[] {
 export async function getDigest(teamId: string, force = false): Promise<Digest> {
   const [profile, schedule, injuries, season, notes, standings, catalog] = await Promise.all([
     cached(`team:${teamId}`, features.ttl.teamMs, () => fetchTeamRaw(teamId), force),
-    cached(`sched:${teamId}`, features.ttl.teamMs, () => fetchSchedule(teamId), force).catch(() => ({
-      data: [] as SlateGame[],
+    cached(`sched:v2:${teamId}`, features.ttl.teamMs, () => fetchSchedule(teamId), force).catch(() => ({
+      data: { games: [] as SlateGame[], byeWeek: undefined as number | undefined },
       at: Date.now(),
       stale: true,
     })),
@@ -197,10 +204,14 @@ export async function getDigest(teamId: string, force = false): Promise<Digest> 
   const place = bag['record.standing'] || ''
   const team = catalog.data.find((row) => row.id === teamId || row.abbr === info.abbr)
   const colors = paint(info.abbr || team?.abbr || '', team?.color, team?.alt)
-  const dated = [...schedule.data].filter((game) => game.date).sort((a, b) => a.date.localeCompare(b.date))
+  const dated = [...schedule.data.games].filter((game) => game.date).sort((a, b) => a.date.localeCompare(b.date))
   const results = dated.filter((game) => game.state === 'post').reverse()
   const last = results[0]
-  const next = dated.find((game) => game.state === 'pre' || game.state === 'in')
+  const upcoming = dated.filter((game) => game.state === 'pre' || game.state === 'in')
+  const next = upcoming[0]
+  const byeWeek = schedule.data.byeWeek
+  const byeStillAhead =
+    byeWeek != null && !results.some((game) => weekNumber(game.week) >= byeWeek) ? byeWeek : undefined
   let leaders: Digest['leaders'] = []
   if (last) {
     try {
@@ -247,6 +258,8 @@ export async function getDigest(teamId: string, force = false): Promise<Digest> 
     next,
     last,
     results,
+    upcoming,
+    byeWeek: byeStillAhead,
     sections: sectionsFrom(bag),
     leaders,
     injuries: injuries.data,

@@ -8,17 +8,19 @@ import { font, theme } from '@/src/config/theme'
 import { describeGame } from '@/src/data/espn'
 import type { CompareRow, GameDetail, Injury, SlateGame } from '@/src/data/types'
 import { Card, Logo, Muted, useAccent, useTeamSkin } from '@/src/components/shell'
+import { useLiveClock } from '@/src/components/useLiveClock'
 
 export function LiveBoard({ detail }: { detail: GameDetail }) {
   const skin = useTeamSkin()
   const [open, setOpen] = useState(false)
   const { game } = detail
   const line = describeGame(detail)
+  const clock = useLiveClock(game, detail.updatedAt)
   return (
     <Card>
       <View style={styles.meta}>
         <StatusPill state={game.state} />
-        <Text style={styles.detail}>{game.detail}</Text>
+        <Text style={styles.detail}>{[clock, game.broadcast].filter(Boolean).join('  ·  ')}</Text>
         {game.redZone ? <Text style={styles.red}>Red zone</Text> : null}
       </View>
       <View style={styles.scoreRow}>
@@ -126,7 +128,9 @@ export function MatchupCard({ game, injuries }: { game: SlateGame; injuries?: In
           <TeamScore side={game.away} possession={game.possessionId} />
           <TeamScore side={game.home} possession={game.possessionId} align="right" />
         </View>
-        {game.state === 'pre' ? <Text style={styles.kickoff}>{game.detail}</Text> : null}
+        {game.state === 'pre' ? (
+          <Text style={styles.kickoff}>{[game.detail, game.broadcast].filter(Boolean).join('  ·  ')}</Text>
+        ) : null}
         {listed.map((person) => (
           <Text key={`${person.name}-${person.status}`} style={styles.note}>
             {person.teamAbbr ? `${person.teamAbbr} · ` : ''}
@@ -144,11 +148,14 @@ export function GameStrip({
   hint,
   games,
   onPress,
+  stamp,
 }: {
   title: string
   hint?: string
   games: SlateGame[]
   onPress: (id: string) => void
+  /** When the scoreboard last arrived. Live clocks snap to that check. */
+  stamp?: number
 }) {
   const { accent } = useAccent()
   const skin = useTeamSkin()
@@ -172,11 +179,16 @@ export function GameStrip({
             <Text style={styles.stripAbbr}>{game.home.abbr}</Text>
             <Logo abbr={game.home.abbr} size={22} />
           </View>
-          {game.state !== 'pre' ? <Text style={styles.stripName}>{game.detail}</Text> : null}
+          {game.state !== 'pre' ? <StripClock game={game} stamp={stamp} /> : null}
         </Pressable>
       ))}
     </View>
   )
+}
+
+function StripClock({ game, stamp }: { game: SlateGame; stamp?: number }) {
+  const clock = useLiveClock(game, stamp)
+  return <Text style={styles.stripName}>{clock}</Text>
 }
 
 const styles = StyleSheet.create({
