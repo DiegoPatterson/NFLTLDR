@@ -2,12 +2,13 @@ import { router, type Href } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
+import { PlayoffPicture } from '@/src/components/playoff'
 import { Logo, Muted, Screen, updatedLabel, useTeamSkin } from '@/src/components/shell'
 import { TeamBrowser } from '@/src/components/teams'
 import { copy } from '@/src/config/copy'
 import { font, theme } from '@/src/config/theme'
-import { getLeague, searchPlayers } from '@/src/data/repository'
-import type { CatalogTeam, PlayerCard, PlayerHit } from '@/src/data/types'
+import { getLeague, getPlayoff, searchPlayers } from '@/src/data/repository'
+import type { CatalogTeam, PlayerCard, PlayerHit, SlateGame, StandingRow } from '@/src/data/types'
 import { useApp } from '@/src/state/AppState'
 
 export default function LeagueScreen() {
@@ -21,6 +22,8 @@ export default function LeagueScreen() {
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<PlayerHit[]>([])
   const [playerNote, setPlayerNote] = useState<string | null>(null)
+  const [seeds, setSeeds] = useState<StandingRow[]>([])
+  const [playoffGames, setPlayoffGames] = useState<SlateGame[]>([])
 
   const load = useCallback(async (force = false) => {
     try {
@@ -29,6 +32,11 @@ export default function LeagueScreen() {
       setUpdatedAt(result.at)
       setStale(result.stale)
       setFailed(false)
+      const picture = await getPlayoff(force).catch(() => null)
+      if (picture) {
+        setSeeds(picture.rows)
+        setPlayoffGames(picture.games)
+      }
     } catch {
       setFailed(true)
     }
@@ -99,6 +107,7 @@ export default function LeagueScreen() {
       }}
       footer={updatedAt ? <Muted>{updatedLabel(updatedAt)}</Muted> : null}>
       {!teams.length && !failed ? <Muted>{copy.checking}</Muted> : null}
+      <PlayoffPicture rows={seeds} games={playoffGames} />
       <TeamBrowser
         teams={teams}
         yourId={profile.primaryTeamId}

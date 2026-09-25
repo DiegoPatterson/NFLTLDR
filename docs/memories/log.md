@@ -2,6 +2,12 @@
 
 Newest entries on top. The plan lives in [plan.md](./plan.md). Update that file when a decision changes. Use this file for what actually happened.
 
+## 2026-09-22 — scores, playoff picture, bundled diagrams
+
+- Playbook diagrams that could be saved now ship inside the app. Wikimedia was refusing the phone, which is why some pictures failed in the install.
+- A team page lists every finished game this season, newest first, and each one opens that game.
+- League has a playoff picture from the current seeds. Wild-card pairings are shown as if the season ended today. Later rounds are not drawn, because the league reseeds. Real playoff games replace that projection once they are on the schedule.
+
 ## 2026-09-22 — sideload 1.0.2
 
 - Release APK rebuilt. `dist/FootballTLDR.apk` is about 97.5 MB, versionName 1.0.2, versionCode 3, same signature as the copy on the phone. Includes the team roster, depth-chart order, and the one-line news ticker.

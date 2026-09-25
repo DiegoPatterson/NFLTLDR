@@ -49,6 +49,7 @@ export function TeamDigest({
         <Muted>{copy.noneScheduled}</Muted>
       )}
       {digest.last && digest.last.id !== skipGameId ? <GameLink label="Last" game={digest.last} /> : null}
+      <ScoreList games={digest.results} />
       <Sideline notes={digest.notes} />
 
       {digest.sections.map((section) => (
@@ -129,6 +130,31 @@ function Fact({ label, value }: { label: string; value: string }) {
       <Text style={styles.factValue}>{value}</Text>
       <Text style={[styles.factLabel, { color: skin.faint }]}>{label}</Text>
     </View>
+  )
+}
+
+function ScoreList({ games }: { games: Digest['results'] }) {
+  const skin = useTeamSkin()
+  const [open, setOpen] = useState(true)
+  if (!games.length) return null
+  return (
+    <Card>
+      <Pressable onPress={() => setOpen((value) => !value)} accessibilityRole="button">
+        <Text style={[styles.section, { color: skin.accent }]}>
+          {copy.scores}  {open ? '–' : '+'}
+        </Text>
+      </Pressable>
+      {open
+        ? games.map((game) => (
+            <Pressable key={game.id} onPress={() => router.push(`/game/${game.id}`)} accessibilityRole="button">
+              <Text style={styles.leader}>
+                {game.week ? `${game.week}  ·  ` : ''}
+                {game.away.abbr} {game.away.score || '0'} at {game.home.abbr} {game.home.score || '0'}
+              </Text>
+            </Pressable>
+          ))
+        : null}
+    </Card>
   )
 }
 

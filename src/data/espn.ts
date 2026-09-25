@@ -148,6 +148,7 @@ export function mapEvent(raw: unknown): SlateGame | null {
     date: str(raw.date || competition.date),
     state,
     detail: str(type.shortDetail || type.detail),
+    week: isRecord(raw.week) ? str(raw.week.text || raw.week.number) || undefined : undefined,
     broadcast: broadcast || undefined,
     venue: venue || undefined,
     home,
@@ -160,6 +161,26 @@ function gamesFromScoreboard(json: unknown): SlateGame[] {
   const root = isRecord(json) && isRecord(json.content) && json.content.sbData ? json.content.sbData : json
   const events = isRecord(root) ? root.events : undefined
   return arr(events).map(mapEvent).filter((game): game is SlateGame => game != null)
+}
+
+/** Playoff weeks only. An empty list means the postseason has not started. */
+export async function fetchPostseason(): Promise<SlateGame[]> {
+  const games: SlateGame[] = []
+  const seen = new Set<string>()
+  for (const week of [1, 2, 3, 4, 5]) {
+    const json = await getJson(
+      site(`/apis/site/v2/sports/${endpoints.sport}/${endpoints.league}/scoreboard?seasontype=3&week=${week}`),
+    ).catch(() => null)
+    if (!isRecord(json)) continue
+    const season = isRecord(json.season) ? json.season : {}
+    if (str(season.type) !== '3') continue
+    for (const game of gamesFromScoreboard(json)) {
+      if (!game.id || seen.has(game.id)) continue
+      seen.add(game.id)
+      games.push(game)
+    }
+  }
+  return games
 }
 
 export async function fetchSlate(): Promise<SlateGame[]> {
@@ -225,6 +246,10 @@ export async function fetchStandings(): Promise<StandingRow[]> {
         streak: statValue(stats, 'streak'),
         pointsFor: statValue(stats, 'pointsFor'),
         pointsAgainst: statValue(stats, 'pointsAgainst'),
+        seed: (() => {
+          const seed = Number(statValue(stats, 'playoffSeed'))
+          return Number.isFinite(seed) && seed > 0 ? seed : undefined
+        })(),
       })
     }
   }

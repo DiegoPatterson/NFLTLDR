@@ -17,6 +17,8 @@ export type SlateGame = {
   shortName: string
   date: string
   state: GameState
+  /** Week label from the feed, such as "Week 1". */
+  week?: string
   detail: string
   possessionId?: string
   downLine?: string
@@ -100,6 +102,8 @@ export type Digest = {
   tldr: string
   next?: SlateGame
   last?: SlateGame
+  /** Finished games this season, newest first. */
+  results: SlateGame[]
   sections: DigestSection[]
   leaders: Leader[]
   injuries: Injury[]
@@ -192,4 +196,6 @@ export type StandingRow = {
   streak: string
   pointsFor: string
   pointsAgainst: string
+  /** ESPN's current playoff seed inside the conference. 1 is the bye. */
+  seed?: number
 }

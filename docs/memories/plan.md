@@ -65,6 +65,7 @@ Collapsed sections, each with the few numbers people look up first. Tap to expan
 
 - Record and division standing
 - Next game, or last game if the season is between weeks
+- Scores: every finished game this season, newest first. Tap one for that game.
 - Leaders: passing, rushing, receiving
 - Offense: points, yards, turnovers, third down, red zone
 - Defense: points allowed, sacks, takeaways
@@ -75,6 +76,8 @@ Which numbers are "main" vs "more" is a list in `src/config/statCatalog.ts`, not
 The team page uses that club’s colors while it is open, the same way a player page does, and backing out restores the followed club. Players is a closed section. Open it for the roster, grouped by position. Inside a position, the depth chart order is used: the player the club lists first, then the next, and anyone not on that chart last. Tap a name for the same player card as search. Pin and unpin use the same list as League.
 
 ### League
+
+A playoff picture sits above the team list. It uses ESPN's current seed, not a guessed tiebreaker. Seed 1 would have the bye. The wild-card pairings are 2-7, 3-6, and 4-5, higher seed at home, labeled as what would happen if the season ended today. After the wild-card weekend the league reseeds, so the picture does not draw a locked path to the Super Bowl. Once playoff games are on the schedule, those real games replace the projection. The Super Bowl is the AFC winner against the NFC winner.
 
 Conferences and divisions, plus search. The same box also searches players, but player hits stay hidden until there is a search. Pin a player and he stays under the search bar so the team list can still be scrolled. Tap a team for the same digest. The page makes it obvious this is not your primary team, with a way to set it as primary.
 

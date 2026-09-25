@@ -16,6 +16,7 @@ import {
   fetchDepthRanks,
   fetchRosterPlayers,
   fetchTeamNotes,
+  fetchPostseason,
   fetchSchedule,
   fetchSeasonBag,
   fetchSlate,
@@ -49,6 +50,18 @@ export async function getNews(force = false): Promise<{ data: Article[]; at: num
 
 export async function getStandings(force = false) {
   return cached('standings', features.ttl.standingsMs, fetchStandings, force)
+}
+
+export async function getPlayoff(force = false) {
+  const [standings, games] = await Promise.all([
+    getStandings(force),
+    cached('postseason', features.ttl.standingsMs, fetchPostseason, force).catch(() => ({
+      data: [] as SlateGame[],
+      at: Date.now(),
+      stale: true,
+    })),
+  ])
+  return { rows: standings.data, games: games.data, stale: standings.stale || games.stale }
 }
 
 export async function getCatalog(force = false): Promise<{ data: CatalogTeam[]; at: number; stale: boolean }> {
@@ -185,7 +198,8 @@ export async function getDigest(teamId: string, force = false): Promise<Digest> 
   const team = catalog.data.find((row) => row.id === teamId || row.abbr === info.abbr)
   const colors = paint(info.abbr || team?.abbr || '', team?.color, team?.alt)
   const dated = [...schedule.data].filter((game) => game.date).sort((a, b) => a.date.localeCompare(b.date))
-  const last = [...dated].reverse().find((game) => game.state === 'post')
+  const results = dated.filter((game) => game.state === 'post').reverse()
+  const last = results[0]
   const next = dated.find((game) => game.state === 'pre' || game.state === 'in')
   let leaders: Digest['leaders'] = []
   if (last) {
@@ -232,6 +246,7 @@ export async function getDigest(teamId: string, force = false): Promise<Digest> 
     tldr: teamTldr(info.shortName || info.name || 'This team', record, place),
     next,
     last,
+    results,
     sections: sectionsFrom(bag),
     leaders,
     injuries: injuries.data,
